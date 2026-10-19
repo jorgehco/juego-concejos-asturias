@@ -23,18 +23,23 @@ with tab_capital:
         st.session_state.concejo_elegido = random.choice(datos['Concejo'].tolist())
     if 'mensaje_resultado' not in st.session_state:
         st.session_state.mensaje_resultado = ""
+    if 'revelado' not in st.session_state:
+        st.session_state.revelado = False
 
     concejo = st.session_state.concejo_elegido
     capital_correcta = datos[datos['Concejo'] == concejo]['Capital'].values[0]
 
     # 2. EL CALLBACK DEL ENTER
     def comprobar_capital():
+        if st.session_state.revelado:
+            return
         respuesta = st.session_state.caja_capital 
         if respuesta.strip() != "":
             if quitar_tildes(respuesta.strip().lower()) == quitar_tildes(capital_correcta.lower()):
                 st.session_state.mensaje_resultado = "¡Correcto! 🎉"
                 st.session_state.concejo_elegido = random.choice(datos['Concejo'].tolist())
-                st.session_state.caja_capital = "" 
+                st.session_state.caja_capital = ""
+                st.session_state.revelado = False
             else:
                 st.session_state.mensaje_resultado = "¡Borra y prueba otra vez! ❌"
 
@@ -50,7 +55,8 @@ with tab_capital:
     st.text_input(
         "Escribe la capital y pulsa Enter para comprobar:", 
         key="caja_capital", 
-        on_change=comprobar_capital
+        on_change=comprobar_capital,
+        disabled=st.session_state.revelado
     )
 
     # 4. Mostramos el mensaje (Correcto o Error)
@@ -59,8 +65,25 @@ with tab_capital:
     elif st.session_state.mensaje_resultado != "":
         st.error(st.session_state.mensaje_resultado)
 
-    # 5. El botón de saltar ahora usa "on_click"
-    st.button("No me la sé, prefiero pasar ➡️", on_click=saltar_concejo)
+    # Si se ha pedido ver la respuesta, la mostramos en un cuadro informativo
+    if st.session_state.revelado:
+        st.info(f"💡 La capital de **{concejo}** es **{capital_correcta}**.")
+
+    # 5. Botones dinámicos: Si no está revelado, muestra el botón de ver respuesta. Si está revelado, muestra el de siguiente.
+    if not st.session_state.revelado:
+        def revelar_respuesta():
+            st.session_state.revelado = True
+            st.session_state.mensaje_resultado = ""
+        st.button("Ver respuesta 💡", on_click=revelar_respuesta)
+    else:
+        def siguiente_pregunta():
+            st.session_state.concejo_elegido = random.choice(datos['Concejo'].tolist())
+            st.session_state.caja_capital = ""
+            st.session_state.mensaje_resultado = ""
+            st.session_state.revelado = False
+        st.button("Siguiente Concejo ➡️", on_click=siguiente_pregunta)
+
+
 
 # --- PESTAÑA 2: EL MAPA ---
 with tab_mapa:
