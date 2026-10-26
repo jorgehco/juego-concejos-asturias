@@ -126,6 +126,14 @@ with tab_mapa:
 
     if respuesta_mapa and respuesta_mapa.get("last_active_drawing"):
         concejo_clicado = respuesta_mapa["last_active_drawing"]["properties"]["mun_name"]
+
+        # --- CORRECTOR DE NOMBRES DEL MAPA --- 
+        # Si el mapa devuelve un nombre tradicional distinto al CSV, lo traducimos aquí:
+        correcciones_mapa = {
+            "Cuaña": "Coaña"
+        }
+        concejo_clicado = correcciones_mapa.get(concejo_clicado, concejo_clicado)
+        # -------------------------------------
         
         if quitar_tildes(concejo_clicado.lower()) == quitar_tildes(concejo_objetivo.lower()):
             st.success(f"¡Correcto! Has hecho clic en {concejo_clicado} 🎉")
